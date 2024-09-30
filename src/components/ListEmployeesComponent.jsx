@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import EmployeeDataService from '../service/EmployeeDataService';
+import AuthenticationService from '../service/AuthenticationService';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
@@ -7,6 +8,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, D
 
 const ListEmployeesComponent = () => {
     const [employees, setEmployees] = useState([]);
+    const [userRoles, setUserRoles] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [openBulkDeleteDialog, setOpenBulkDeleteDialog] = useState(false);
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
@@ -20,11 +22,12 @@ const ListEmployeesComponent = () => {
     const location = useLocation();
 
     useEffect(() => {
+        const roles = AuthenticationService.getUserRoles();
+        setUserRoles(roles);
         if (location.state?.message) {
             setSnackbarMessage(location.state.message);
             setSnackbarSeverity('success');
             setOpenSnackbar(true);
-            // Clear state information
             navigate(location.pathname, { replace: true, state: {} });
         }
         refreshEmployees();
@@ -35,6 +38,9 @@ const ListEmployeesComponent = () => {
             employees.filter(emp => emp.name.toLowerCase().includes(searchText.toLowerCase()))
         );
     }, [searchText, employees]);
+
+    const isAdmin = userRoles.includes('ADMIN');
+    const isEmployeeManager = userRoles.includes('EMPLOYEE_MANAGER');
 
     const deleteSelectedEmployees = () => {
         console.log("Deleting employees with IDs:", selectedEmployees);
@@ -133,6 +139,7 @@ const ListEmployeesComponent = () => {
                   color="primary" 
                   style={{ marginRight: 8 }}
                   onClick={() => navigate(`/employees/${params.id}`)}
+                  disabled={!isAdmin && !isEmployeeManager}
               >
                   Update
               </Button>
@@ -143,6 +150,7 @@ const ListEmployeesComponent = () => {
                       setEmployeeToDelete(params.row);
                       setOpenDialog(true);
                   }}
+                  disabled={!isAdmin && !isEmployeeManager}
               >
                   Delete
               </Button>
@@ -187,7 +195,7 @@ const ListEmployeesComponent = () => {
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 12, gap: '20px' }}>
-                <Button variant="contained" color="primary" onClick={addEmployeeClicked}>
+                <Button variant="contained" color="primary" onClick={addEmployeeClicked} disabled={!isAdmin && !isEmployeeManager}>
                     Add Employee
                 </Button>
                 <Button 
@@ -196,7 +204,7 @@ const ListEmployeesComponent = () => {
                     onClick={() => {
                         setOpenBulkDeleteDialog(true);
                     }}
-                    disabled={selectedEmployees.length === 0} 
+                    disabled={selectedEmployees.length === 0 || (!isAdmin && !isEmployeeManager)}
                 >
                     Bulk Delete
                 </Button>

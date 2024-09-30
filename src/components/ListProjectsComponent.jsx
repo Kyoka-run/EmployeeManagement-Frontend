@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ProjectDataService from '../service/ProjectDataService';
+import AuthenticationService from '../service/AuthenticationService';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
@@ -7,6 +8,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, D
 
 const ListProjectsComponent = () => {
     const [projects, setProjects] = useState([]);
+    const [userRoles, setUserRoles] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [openBulkDeleteDialog, setOpenBulkDeleteDialog] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState(null);
@@ -20,6 +22,8 @@ const ListProjectsComponent = () => {
     const location = useLocation();
 
     useEffect(() => {
+        const roles = AuthenticationService.getUserRoles();
+        setUserRoles(roles);
         if (location.state?.message) {
             setSnackbarMessage(location.state.message);
             setSnackbarSeverity('success'); 
@@ -34,6 +38,9 @@ const ListProjectsComponent = () => {
             projects.filter(proj => proj.name.toLowerCase().includes(searchText.toLowerCase()))
         );
     }, [searchText, projects]);
+
+    const isAdmin = userRoles.includes('ADMIN');
+    const isProjectManager = userRoles.includes('PROJECT_MANAGER');
 
     const deleteSelectedProjects = () => {
         console.log("Deleting projects with IDs:", selectedProjects);
@@ -67,8 +74,9 @@ const ListProjectsComponent = () => {
             })
             .catch(error => {
                 console.error('Error retrieving data:', error);
-                setSnackbarMessage(`Failed to retrieve data: ${error.message}`);
+                setSnackbarMessage("Failed to retrieve data: You need login");
                 setSnackbarSeverity('error');
+                setOpenSnackbar(true);
             });
     };
 
@@ -129,6 +137,7 @@ const ListProjectsComponent = () => {
                   color="primary" 
                   style={{ marginRight: 8 }}
                   onClick={() => navigate(`/projects/${params.id}`)}
+                  disabled={!isAdmin && !isProjectManager}
               >
                   Update
               </Button>
@@ -139,6 +148,7 @@ const ListProjectsComponent = () => {
                       setProjectToDelete(params.row);
                       setOpenDialog(true);
                   }}
+                  disabled={!isAdmin && !isProjectManager}
               >
                   Delete
               </Button>
@@ -183,14 +193,14 @@ const ListProjectsComponent = () => {
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 12, gap: '20px' }}>
-                <Button variant="contained" color="primary" onClick={addProjectClicked}>
+                <Button variant="contained" color="primary" onClick={addProjectClicked} disabled={!isAdmin && !isProjectManager}>
                     Add Project
                 </Button>
                 <Button 
                     variant="contained" 
                     color="secondary" 
                     onClick={() => setOpenBulkDeleteDialog(true)}
-                    disabled={selectedProjects.length === 0} 
+                    disabled={selectedProjects.length === 0 || (!isAdmin && !isProjectManager)} 
                 >
                     Bulk Delete
                 </Button>

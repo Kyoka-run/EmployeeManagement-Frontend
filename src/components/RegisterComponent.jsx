@@ -1,12 +1,16 @@
 import React, { useState } from "react";
-import { Container, Box, Typography, TextField, Button, Alert } from '@mui/material';
+import {
+    Container,Box,Typography,TextField,Button,Alert,FormControl,InputLabel,Select,MenuItem,OutlinedInput,Chip
+  } from '@mui/material';
 import axios from 'axios';
+
 
 const RegisterComponent = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [roles, setRoles] = useState([]);
 
     const handleRegister = async () => {
         if (!username.trim()) {
@@ -19,18 +23,33 @@ const RegisterComponent = () => {
             setSuccessMessage('');
             return;
         }
+        if (!roles.length) {
+            setErrorMessage("Please select at least one role.");
+            setSuccessMessage('');
+            return;
+        }
 
         try {
             const response = await axios.post('http://localhost:8080/api/register', {
                 username,
                 password,
+                roles
             });
             setSuccessMessage("Account created successfully! You can now login.");
             setErrorMessage('');
         } catch (error) {
-            setErrorMessage("Failed to register. Username may already be taken.");
+            setErrorMessage("Failed to register.");
             setSuccessMessage('');
         }
+    };
+
+    const handleChange = (event) => {
+        const {
+            target: { value },
+        } = event;
+        setRoles(
+            typeof value === 'string' ? value.split(',') : value,
+        );
     };
 
     return (
@@ -70,6 +89,28 @@ const RegisterComponent = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel id="role-label">Role</InputLabel>
+                        <Select
+                            labelId="role-label"
+                            multiple
+                            value={roles}
+                            onChange={handleChange}
+                            input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
+                            renderValue={(selected) => (
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    {selected.map((value) => (
+                                        <Chip key={value} label={value} />
+                                    ))}
+                                </Box>
+                            )}
+                        >
+                            <MenuItem value="ADMIN">Admin</MenuItem>
+                            <MenuItem value="EMPLOYEE_MANAGER">Employee Manager</MenuItem>
+                            <MenuItem value="PROJECT_MANAGER">Project Manager</MenuItem>
+                            <MenuItem value="GUEST">Guest</MenuItem>
+                        </Select>
+                    </FormControl>
                     <Button
                         variant="contained"
                         color="primary"
