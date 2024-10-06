@@ -76,7 +76,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
   ...theme.mixins.toolbar,
   justifyContent: 'flex-end',
 }));
@@ -155,7 +154,7 @@ export default function PersistentDrawerLeft() {
         open={open}
       >
         <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
+          <IconButton onClick={handleDrawerClose} aria-label="close drawer">
             {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
           </IconButton>
         </DrawerHeader>

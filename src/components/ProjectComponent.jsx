@@ -139,21 +139,24 @@ class ProjectComponent extends Component {
                             </Box>
                             
                             <FormControl fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Employees</InputLabel>
+                                <InputLabel id="employee-select-label">Employees</InputLabel>
                                 <Select
+                                    labelId="employee-select-label"
+                                    data-testid="employees-select"
                                     multiple
-                                    value={employees}
+                                    value={employees.map(emp => emp.id)}    
                                     onChange={this.handleEmployeeChange}
                                     renderValue={(selected) => selected.map((emp) => emp.name).join(', ')}
                                 >
                                 {allEmployees.map((employee) => (
-                                    <MenuItem key={employee.id} value={employee}>
-                                    <Checkbox checked={employees.some(e => e.id === employee.id)} />
-                                    <ListItemText primary={employee.name} />
-                                    </MenuItem>
-                                    ))}
+                                    <MenuItem key={employee.id} value={employee.id}>
+                                        <Checkbox checked={employees.some(e => e.id === employee.id)} />    
+                                        <ListItemText primary={employee.name} />
+                                    </MenuItem> 
+                                ))}
                                 </Select>
                             </FormControl>
+
 
                             <Button variant="contained" color="primary" type="submit">
                                 Save

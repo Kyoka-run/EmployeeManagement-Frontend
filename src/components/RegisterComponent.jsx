@@ -118,7 +118,7 @@ const RegisterComponent = () => {
                         onClick={handleRegister}
                         sx={{ mt: 2 }}
                     >
-                        Register
+                        Confirm
                     </Button>
                 </div>
             </Box>

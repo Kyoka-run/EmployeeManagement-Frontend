@@ -173,12 +173,14 @@ class EmployeeComponent extends Component {
                             </Box>
                             
                             <FormControl fullWidth sx={{ mb: 2 }}>
-                                <InputLabel>Projects</InputLabel>
+                                <InputLabel id="project-select-label">Projects</InputLabel>
                                 <Select
+                                    data-testid="projects-select"
                                     multiple
                                     value={projects}
                                     onChange={this.handleProjectChange}
                                     renderValue={(selected) => selected.map((proj) => proj.name).join(', ')}
+                                    MenuProps={{ container: document.body }}
                                 >
                                 {allProjects.map((project) => (
                                     <MenuItem key={project.id} value={project}>
