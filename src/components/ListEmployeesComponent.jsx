@@ -86,7 +86,7 @@ const ListEmployeesComponent = () => {
             projects: emp.projects.map(p => p.name).join(", ") 
         }));
     };
-    
+
     const addEmployeeClicked = () => {
         navigate('/employees/-1');
     };

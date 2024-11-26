@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const Employee_API_URL = 'http://localhost:8080/api/employees';
+const Employee_API_URL = 'http://localhost:8080/employees';
+// const Employee_API_URL = 'http://98.81.209.12/employees';
+
 
 class EmployeeDataService {
 

@@ -1,28 +1,11 @@
-import { Link } from 'react-router-dom'
+import * as React from 'react';
+import { useContext, useState } from 'react';
+import { Link } from 'react-router-dom';
 import AuthenticationService from '../service/AuthenticationService';
 import { MContext } from './MyProvider';
-import * as React from 'react';
 import { styled, useTheme } from '@mui/material/styles';
-import { useContext } from 'react';
-import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
-import CssBaseline from '@mui/material/CssBaseline';
-import MuiAppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import Folder from '@mui/icons-material/Folder';
-import Person from '@mui/icons-material/Person';
-import Button from '@mui/material/Button'; 
+import { Box, Drawer, CssBaseline, AppBar as MuiAppBar, Toolbar, List, Typography, Divider, IconButton, ListItem, ListItemButton, ListItemIcon, ListItemText, Button } from '@mui/material';
+import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, Folder, Person } from '@mui/icons-material';
 
 const drawerWidth = 240;
 

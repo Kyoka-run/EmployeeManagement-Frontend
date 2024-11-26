@@ -1,72 +1,93 @@
 import axios from "axios";
-const Employee_API = 'http://localhost:8080/api';
 
-export const USER_NAME_SESSION_ATTRIBUTE_NAME = 'authenticatedUser'
+const Employee_API = 'http://localhost:8080';
+// const Employee_API = 'http://98.81.209.12';
+
+export const USER_NAME_SESSION_ATTRIBUTE_NAME = 'authenticatedUser';
 export const USER_ROLES_SESSION_ATTRIBUTE_NAME = 'userRoles';
 
 class AuthenticationService {
+    static JWT_TOKEN_KEY = 'jwtToken';
 
-    login(username, password) {
-        const params = new URLSearchParams();
-        params.append('username', username);
-        params.append('password', password);
-        return axios.post(Employee_API + '/login', params, { withCredentials: true })
-        .then(response => {
-            sessionStorage.setItem(USER_NAME_SESSION_ATTRIBUTE_NAME, username);
-            this.fetchUserRoles(); 
-            this.setupAxiosInterceptors();
+    // Login method for authenticating user and storing JWT token
+    async login(username, password) {
+        try {
+            const response = await axios.post(Employee_API + '/login', { username, password });
+            if (response.data.token) {
+                localStorage.setItem(AuthenticationService.JWT_TOKEN_KEY, response.data.token);
+                this.setupAxiosInterceptors(this.getJwtToken());
+            }
             return response;
-        });
+        } catch (error) {
+            console.error("Login failed:", error);
+            throw error;
+        }
     }
 
-    async registerSuccessfulLogin(username,id) {
-        sessionStorage.setItem(USER_NAME_SESSION_ATTRIBUTE_NAME, username);
-        await this.fetchUserRoles(id); 
-        this.setupAxiosInterceptors();
+    // Retrieve JWT token from local storage
+    getJwtToken() {
+        return localStorage.getItem(AuthenticationService.JWT_TOKEN_KEY);
     }
 
+    // Register successful login and set up interceptors for authenticated requests
+    async registerSuccessfulLogin(username) {
+        try {
+            await this.fetchUserRoles();
+            this.setupAxiosInterceptors(this.getJwtToken());
+        } catch (error) {
+            console.error("Failed to register successful login:", error);
+        }
+    }
+
+    // Fetch user roles from the server and store them in session storage
     async fetchUserRoles() {
         try {
-            const response = await axios.get(Employee_API + '/user/roles', { withCredentials: true });
+            const response = await axios.get(Employee_API + `/roles`, {
+                headers: {
+                    Authorization: `Bearer ${this.getJwtToken()}`
+                }
+            });
             const roles = response.data;
-            console.log("Roles fetched from API:", roles);
             sessionStorage.setItem(USER_ROLES_SESSION_ATTRIBUTE_NAME, JSON.stringify(roles));
         } catch (error) {
             console.error("Failed to fetch user roles:", error);
         }
     }
 
+    // Retrieve user roles from session storage
     getUserRoles() {
         const roles = sessionStorage.getItem(USER_ROLES_SESSION_ATTRIBUTE_NAME);
         return roles ? JSON.parse(roles) : [];
-    }    
-
-    isUserLoggedIn() {
-        return sessionStorage.getItem(USER_NAME_SESSION_ATTRIBUTE_NAME) !== null;
     }
 
+    // Check if a user is logged in by verifying the existence of a JWT token
+    isUserLoggedIn() {
+        return this.getJwtToken() !== null;
+    }
+
+    // Logout method for clearing session data and resetting axios authorization header
     logout(context) {
-        axios.post("http://localhost:8080/api/logout", {}, { withCredentials: true })
-            .then(() => {
-                sessionStorage.removeItem(USER_NAME_SESSION_ATTRIBUTE_NAME);
-                sessionStorage.removeItem(USER_ROLES_SESSION_ATTRIBUTE_NAME);
-                if (context && context.setIsUserLoggedIn) {
-                    context.setIsUserLoggedIn(false);
-                }
-            })
-            .catch(error => {
-                console.error("Logout failed:", error); 
-            });
+        localStorage.removeItem(AuthenticationService.JWT_TOKEN_KEY);
+        sessionStorage.removeItem(USER_ROLES_SESSION_ATTRIBUTE_NAME); // Clear user roles as well
+        axios.defaults.headers.common['Authorization'] = null;
+        if (context && context.setIsUserLoggedIn) {
+            context.setIsUserLoggedIn(false);
+        }
     }
     
-    setupAxiosInterceptors() {
-        axios.interceptors.request.use((config) => {
-            let user = sessionStorage.getItem(USER_NAME_SESSION_ATTRIBUTE_NAME);
-            if (user) {
-                config.withCredentials = true;
+    // Set up axios interceptors to include JWT token in all outgoing requests
+    setupAxiosInterceptors(token) {
+        axios.interceptors.request.use(
+            config => {
+                if (token) {
+                    config.headers.Authorization = `Bearer ${token}`;
+                }
+                return config;
+            },
+            error => {
+                return Promise.reject(error);
             }
-            return config;
-        });
+        );
     }
 }
 
