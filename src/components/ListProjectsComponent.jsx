@@ -135,7 +135,7 @@ const ListProjectsComponent = () => {
               <Button 
                   variant="contained" 
                   color="primary" 
-                  style={{ marginRight: 8 }}
+                  style={{ marginRight: 8}}
                   onClick={() => navigate(`/projects/${params.id}`)}
                   disabled={!isAdmin && !isProjectManager}
               >
@@ -144,6 +144,7 @@ const ListProjectsComponent = () => {
               <Button 
                   variant="contained" 
                   color="secondary" 
+                  style={{ marginRight: 8}}
                   onClick={() => {
                       setProjectToDelete(params.row);
                       setOpenDialog(true);
@@ -151,6 +152,13 @@ const ListProjectsComponent = () => {
                   disabled={!isAdmin && !isProjectManager}
               >
                   Delete
+              </Button>
+              <Button 
+                  variant="contained" 
+                  color="success" 
+                  onClick={() => navigate(`/projects/${params.id}/details`)}
+              >
+                  Detail
               </Button>
             </>
           ),

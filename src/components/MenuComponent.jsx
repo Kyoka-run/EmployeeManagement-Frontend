@@ -5,7 +5,7 @@ import AuthenticationService from '../service/AuthenticationService';
 import { MContext } from './MyProvider';
 import { styled, useTheme } from '@mui/material/styles';
 import { Box, Drawer, CssBaseline, AppBar as MuiAppBar, Toolbar, List, Typography, Divider, IconButton, ListItem, ListItemButton, ListItemIcon, ListItemText, Button } from '@mui/material';
-import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, Folder, Person } from '@mui/icons-material';
+import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, Folder, Person, AccountCircle } from '@mui/icons-material';
 
 const drawerWidth = 240;
 
@@ -157,6 +157,14 @@ export default function PersistentDrawerLeft() {
                   <Folder />
                 </ListItemIcon>
                 <ListItemText primary = "Projects" />
+              </ListItemButton>
+            </ListItem>
+            <ListItem key="User"  disablePadding>
+              <ListItemButton component={Link} to="/user">
+                <ListItemIcon>
+                  <AccountCircle />
+                </ListItemIcon>
+                <ListItemText primary = "User" />
               </ListItemButton>
             </ListItem>
         </List>

@@ -30,9 +30,13 @@ function LoginComponent() {
     // Handle login click
     const loginClicked = () => {
         AuthenticationService.login(username, password)
-            .then(() => {
-                AuthenticationService.registerSuccessfulLogin(username);
+            .then((response) => {
+                const { userId, token } = response.data;
+                AuthenticationService.registerSuccessfulLogin(username, userId, token);
+                const user = { id: userId, username };
                 context.setIsUserLoggedIn(true);
+                context.setUser(user);
+
                 navigate('/employees');
                 setShowSuccessMessage(true);
                 setHasLoginFailed(false);

@@ -146,6 +146,7 @@ const ListEmployeesComponent = () => {
               <Button 
                   variant="contained" 
                   color="secondary" 
+                  style={{ marginRight: 8 }}
                   onClick={() => {
                       setEmployeeToDelete(params.row);
                       setOpenDialog(true);
@@ -153,6 +154,13 @@ const ListEmployeesComponent = () => {
                   disabled={!isAdmin && !isEmployeeManager}
               >
                   Delete
+              </Button>
+              <Button 
+                  variant="contained" 
+                  color="success" 
+                  onClick={() => navigate(`/employees/${params.id}/details`)}
+              >
+                  Detail
               </Button>
             </>
           ),

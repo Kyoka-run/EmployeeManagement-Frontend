@@ -7,23 +7,23 @@ const Employee_API_URL = 'http://localhost:8080/employees';
 class EmployeeDataService {
 
     retrieveAllEmployees() {
-        return axios.get(Employee_API_URL, { withCredentials: true });
+        return axios.get(Employee_API_URL);
     }
 
     deleteEmployee(id) {
-        return axios.delete(Employee_API_URL + '/' + id, { withCredentials: true });
+        return axios.delete(Employee_API_URL + '/' + id);
     }
 
     updateEmployee(id, employee) {
-        return axios.put(Employee_API_URL + '/' + id, employee, { withCredentials: true });
+        return axios.put(Employee_API_URL + '/' + id, employee);
     }
 
     createEmployee(employee) {
-        return axios.post(Employee_API_URL, employee, { withCredentials: true });
+        return axios.post(Employee_API_URL, employee);
     }
 
     retrieveEmployee(id) {
-        return axios.get(Employee_API_URL + '/' + id, { withCredentials: true });
+        return axios.get(Employee_API_URL + '/' + id);
     }
 }
 

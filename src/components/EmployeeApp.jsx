@@ -9,6 +9,9 @@ import MyProvider from './MyProvider.jsx';
 import RegisterComponent from './RegisterComponent.jsx';
 import ListProjectsComponent from "./ListProjectsComponent.jsx";
 import ProjectComponent from "./ProjectComponent.jsx";
+import EmployeeDetailsComponent from "./EmployeeDetailsComponent.jsx";
+import ProjectDetailsComponent from "./ProjectDetailsComponent.jsx";
+import UserAccountComponent from "./UserAccountComponent.jsx";
 
 function EmployeeApp() {
   return (
@@ -24,6 +27,9 @@ function EmployeeApp() {
           <Route path="/employees/:id" element={<EmployeeComponent />} />
           <Route path="/projects" element={<ListProjectsComponent />} />
           <Route path="/projects/:id" element={<ProjectComponent />} />
+          <Route path="/employees/:id/details" element={<EmployeeDetailsComponent />} />
+          <Route path="/projects/:id/details" element={<ProjectDetailsComponent />} />
+          <Route path="/user" element={<UserAccountComponent />} />
         </Routes>
       </MyProvider>
     </>
