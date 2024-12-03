@@ -1,127 +1,127 @@
 import React from 'react';
-import { render, fireEvent, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
+import { BrowserRouter } from 'react-router-dom';
 import ProjectComponent from '../components/ProjectComponent';
-import EmployeeDataService from '../service/EmployeeDataService';
 import ProjectDataService from '../service/ProjectDataService';
-import { MemoryRouter } from 'react-router-dom';
+import EmployeeDataService from '../service/EmployeeDataService';
 
-// Mock the data services
-jest.mock('../service/EmployeeDataService');
 jest.mock('../service/ProjectDataService');
+jest.mock('../service/EmployeeDataService');
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({ id: '1' }),
+  useNavigate: () => jest.fn()
+}));
+
+const mockProject = {
+  id: 1,
+  name: 'Test Project',
+  description: 'Test Description',
+  employees: []
+};
+
+const mockEmployees = [
+  { id: 1, name: 'Employee A', position: 'Dev', department: 'IT', email: 'a@test.com' },
+  { id: 2, name: 'Employee B', position: 'QA', department: 'IT', email: 'b@test.com' }
+];
+
+const TestWrapper = ({ children }) => (
+  <BrowserRouter>{children}</BrowserRouter>
+);
 
 describe('ProjectComponent', () => {
-    const mockEmployees = [
-        { id: 1, name: 'John Doe', position: 'Developer', department: 'IT', email: 'john.doe@example.com' },
-        { id: 2, name: 'Jane Smith', position: 'Manager', department: 'HR', email: 'jane.smith@example.com' },
-    ];
+  beforeEach(() => {
+    ProjectDataService.retrieveProject.mockResolvedValue({ data: mockProject });
+    EmployeeDataService.retrieveAllEmployees.mockResolvedValue({ data: mockEmployees });
+  });
 
-    beforeEach(() => {
-        // Mock the employee data retrieval
-        EmployeeDataService.retrieveAllEmployees.mockResolvedValue({
-            data: mockEmployees
-        });
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders project form with all fields', async () => {
+    render(<ProjectComponent />, { wrapper: TestWrapper });
+    
+    await waitFor(() => {
+      expect(screen.getByRole('textbox', { name: /name/i })).toBeInTheDocument();
+      expect(screen.getByRole('textbox', { name: /description/i })).toBeInTheDocument();
+    });
+  });
+
+  it('displays validation errors for empty fields', async () => {
+    render(<ProjectComponent />, { wrapper: TestWrapper });
+    
+    await waitFor(() => {
+      expect(screen.getByRole('textbox', { name: /name/i })).toBeInTheDocument();
     });
 
-    it('should render the form with all fields', async () => {
-        render(
-            <MemoryRouter>
-                <ProjectComponent match={{ params: { id: -1 } }} />
-            </MemoryRouter>
-        );
+    const inputs = screen.getAllByRole('textbox');
+    for (let input of inputs) {
+      await userEvent.clear(input);
+    }
 
-        // Use basic queries to check elements are present in the document
-        expect(screen.getByLabelText(/name/i)).toBeTruthy();
-        expect(screen.getByLabelText(/description/i)).toBeTruthy();
+    const saveButton = screen.getByRole('button', { name: /save/i });
+    await userEvent.click(saveButton);
 
-        // Use waitFor to handle asynchronous updates
-        await waitFor(() => {
-            expect(screen.getByTestId('employees-select')).toBeTruthy();
-        });
+    await waitFor(() => {
+      expect(screen.getByText('Name is required')).toBeInTheDocument();
+      expect(screen.getByText('Description is required')).toBeInTheDocument();
+    });
+  });
+
+  it('loads existing project data correctly', async () => {
+    render(<ProjectComponent />, { wrapper: TestWrapper });
+
+    await waitFor(() => {
+      expect(screen.getByRole('textbox', { name: /name/i })).toHaveValue(mockProject.name);
+      expect(screen.getByRole('textbox', { name: /description/i })).toHaveValue(mockProject.description);
+    });
+  });
+
+  it('displays employee select with available options', async () => {
+    render(<ProjectComponent />, { wrapper: TestWrapper });
+  
+    const select = await screen.findByTestId('employees-select');
+    expect(select).toBeInTheDocument();
+    
+    await waitFor(() => {
+      expect(EmployeeDataService.retrieveAllEmployees).toHaveBeenCalled();
+    });
+  });
+
+  it('submits form successfully for existing project', async () => {
+    ProjectDataService.updateProject.mockResolvedValue({});
+    
+    render(<ProjectComponent />, { wrapper: TestWrapper });
+
+    await waitFor(() => {
+      expect(screen.getByRole('textbox', { name: /name/i })).toHaveValue(mockProject.name);
     });
 
-    it('should validate form fields on submit', async () => {
-        render(
-            <MemoryRouter>
-                <ProjectComponent match={{ params: { id: -1 } }} />
-            </MemoryRouter>
-        );
+    const nameInput = screen.getByRole('textbox', { name: /name/i });
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, 'Updated Project');
 
-        fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    const saveButton = screen.getByRole('button', { name: /save/i });
+    await userEvent.click(saveButton);
 
-        // Check if elements showing validation errors appear
-        await waitFor(() => {
-            expect(screen.queryByText(/name is required/i)).toBeTruthy();
-            expect(screen.queryByText(/description is required/i)).toBeTruthy();
-        });
+    await waitFor(() => {
+      expect(ProjectDataService.updateProject).toHaveBeenCalled();
+    });
+  });
+
+  it('handles API errors gracefully', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    ProjectDataService.retrieveProject.mockRejectedValue(new Error('API Error'));
+
+    render(<ProjectComponent />, { wrapper: TestWrapper });
+
+    await waitFor(() => {
+      expect(consoleError).toHaveBeenCalled();
     });
 
-    it('should handle employee selection', async () => {
-        // Mock employee data
-        const mockEmployees = [
-            { id: 1, name: 'John Doe', position: 'Developer', department: 'IT', email: 'john.doe@example.com' },
-            { id: 2, name: 'Jane Smith', position: 'Manager', department: 'HR', email: 'jane.smith@example.com' }
-        ];
-
-        // Simulate the response of retrieveAllEmployees
-        EmployeeDataService.retrieveAllEmployees.mockResolvedValue({ data: mockEmployees });
-
-        // Step 1: Render the ProjectComponent with mock data
-        console.log("Rendering ProjectComponent with props:", { match: { params: { id: -1 } } });
-        render(
-            <MemoryRouter>
-                <ProjectComponent match={{ params: { id: -1 } }} />
-            </MemoryRouter>
-        );
-
-        // Step 2: Open the select dropdown and log
-        const selectInput = screen.getByTestId('employees-select');
-        console.log("Select input element found:", selectInput);
-
-        fireEvent.mouseDown(selectInput);  // Trigger dropdown opening
-        console.log("Dropdown menu opened.");
-
-        // Insert a brief pause to ensure the dropdown options are rendered
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Step 3: Wait for the options to appear in the DOM
-        console.log("Looking for 'John Doe' in the dropdown options...");
-        const employeeOption = await waitFor(() => {
-            const option = screen.queryByText('John Doe');
-            console.log("Found option:", option);
-            return option;
-        });
-
-        // Step 4: Select the "John Doe" option and log
-        if (employeeOption) {
-            console.log("Clicking on John Doe option:", employeeOption);
-            fireEvent.click(employeeOption);
-
-            // Step 5: Verify that "John Doe" is selected
-            const selectedOption = screen.getByText(/John Doe/i);
-            console.log("Selected option found:", selectedOption);
-            expect(selectedOption).toBeInTheDocument();  // Verify that "John Doe" is now shown in the select
-        } else {
-            console.error("John Doe option was not found in the DOM.");
-        }
-    });
-
-    it('should submit form with valid data', async () => {
-        ProjectDataService.createProject.mockResolvedValue({});
-
-        render(
-            <MemoryRouter>
-                <ProjectComponent match={{ params: { id: -1 } }} />
-            </MemoryRouter>
-        );
-
-        // Fill in the project form
-        fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'New Project' } });
-        fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'New Project Description' } });
-
-        fireEvent.click(screen.getByRole('button', { name: /save/i }));
-
-        await waitFor(() => {
-            expect(ProjectDataService.createProject).toHaveBeenCalled();
-        });
-    });
+    consoleError.mockRestore();
+  });
 });

@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>33/33</span>
+                <span class='fraction'>32/32</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>33/33</span>
+                <span class='fraction'>32/32</span>
             </div>
         
             
@@ -191,14 +191,19 @@
 <a name='L126'></a><a href='#L126'>126</a>
 <a name='L127'></a><a href='#L127'>127</a>
 <a name='L128'></a><a href='#L128'>128</a>
-<a name='L129'></a><a href='#L129'>129</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">21x</span>
 <span class="cline-any cline-yes">21x</span>
 <span class="cline-any cline-yes">21x</span>
@@ -206,6 +211,7 @@
 <span class="cline-any cline-yes">21x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -223,6 +229,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -243,9 +250,9 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -280,6 +287,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -291,9 +299,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -321,140 +333,146 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React, { useState } from "react";
 import {
-    Container,Box,Typography,TextField,Button,Alert,FormControl,InputLabel,Select,MenuItem,OutlinedInput,Chip
-  } from '@mui/material';
+  Container, Box, Typography, TextField, Button, Alert, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Chip
+} from '@mui/material';
 import axios from 'axios';
 &nbsp;
+function RegisterComponent() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [roles, setRoles] = useState([]);
 &nbsp;
-const RegisterComponent = () =&gt; {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
-    const [roles, setRoles] = useState([]);
+  const handleRegister = async () =&gt; {
+    // Input validation
+    if (!username.trim()) {
+      setErrorMessage("Username cannot be empty.");
+      setSuccessMessage('');
+      return;
+    }
+    if (!password.trim()) {
+      setErrorMessage("Password cannot be empty.");
+      setSuccessMessage('');
+      return;
+    }
+    if (!roles.length) {
+      setErrorMessage("Please select at least one role.");
+      setSuccessMessage('');
+      return;
+    }
 &nbsp;
-    const handleRegister = async () =&gt; {
-        if (!username.trim()) {
-            setErrorMessage("Username cannot be empty.");
-            setSuccessMessage('');
-            return;
-        }
-        if (!password.trim()) {
-            setErrorMessage("Password cannot be empty.");
-            setSuccessMessage('');
-            return;
-        }
-        if (!roles.length) {
-            setErrorMessage("Please select at least one role.");
-            setSuccessMessage('');
-            return;
-        }
+    try {
+      // const response = await axios.post('http://localhost:8080/register', {
+      const response = await axios.post('http://98.81.209.12/register', {
+        username,
+        password,
+        roles
+      });
+      setSuccessMessage("Account created successfully! You can now login.");
+      setErrorMessage('');
+    } catch (error) {
+      setErrorMessage("Failed to register.");
+      setSuccessMessage('');
+    }
+  };
 &nbsp;
-        try {
-            const response = await axios.post('http://localhost:8080/api/register', {
-                username,
-                password,
-                roles
-            });
-            setSuccessMessage("Account created successfully! You can now login.");
-            setErrorMessage('');
-        } catch (error) {
-            setErrorMessage("Failed to register.");
-            setSuccessMessage('');
-        }
-    };
+  const handleChange = (event) =&gt; {
+    const {
+      target: { value },
+    } = event;
+    setRoles(typeof value === 'string' ? <span class="branch-0 cbranch-no" title="branch not covered" >value.split(',') </span>: value);
+  };
 &nbsp;
-    const handleChange = (event) =&gt; {
-        const {
-            target: { value },
-        } = event;
-        setRoles(
-            typeof value === 'string' ? <span class="branch-0 cbranch-no" title="branch not covered" >value.split(',') </span>: value,
-        );
-    };
-&nbsp;
-    return (
-        &lt;Container maxWidth="sm"&gt;
-            &lt;Box
-                sx={{
-                    marginTop: 8,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    padding: 3,
-                    border: '1px solid grey',
-                    borderRadius: 2,
-                    boxShadow: 3,
-                }}
+  return (
+    &lt;Container maxWidth="sm"&gt;
+      &lt;Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: 3,
+          border: '1px solid grey',
+          borderRadius: 2,
+          boxShadow: 3,
+        }}
+      &gt;
+        &lt;Typography variant="h4" gutterBottom&gt;
+          Register
+        &lt;/Typography&gt;
+        &lt;div className="container"&gt;
+          {/* Display error or success message */}
+          {errorMessage &amp;&amp; &lt;Alert severity="error"&gt;{errorMessage}&lt;/Alert&gt;}
+          {successMessage &amp;&amp; &lt;Alert severity="success"&gt;{successMessage}&lt;/Alert&gt;}
+          {/* Username input field */}
+          &lt;TextField
+            label="Username"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={username}
+            onChange={(e) =&gt; setUsername(e.target.value)}
+          /&gt;
+          {/* Password input field */}
+          &lt;TextField
+            label="Password"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            type="password"
+            value={password}
+            onChange={(e) =&gt; setPassword(e.target.value)}
+          /&gt;
+          {/* Role selection field */}
+          &lt;FormControl fullWidth margin="normal"&gt;
+            &lt;InputLabel id="role-label"&gt;Role&lt;/InputLabel&gt;
+            &lt;Select
+              labelId="role-label"
+              multiple
+              value={roles}
+              onChange={handleChange}
+              input={&lt;OutlinedInput id="select-multiple-chip" label="Chip" /&gt;}
+              renderValue={(selected) =&gt; (
+                &lt;Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}&gt;
+                  {selected.map((value) =&gt; (
+                    &lt;Chip key={value} label={value} /&gt;
+                  ))}
+                &lt;/Box&gt;
+              )}
             &gt;
-                &lt;Typography variant="h4" gutterBottom&gt;
-                    Register
-                &lt;/Typography&gt;
-                &lt;div className="container"&gt;
-                    {errorMessage &amp;&amp; &lt;Alert severity="error"&gt;{errorMessage}&lt;/Alert&gt;}
-                    {successMessage &amp;&amp; &lt;Alert severity="success"&gt;{successMessage}&lt;/Alert&gt;}
-                    &lt;TextField
-                        label="Username"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={username}
-                        onChange={(e) =&gt; setUsername(e.target.value)}
-                    /&gt;
-                    &lt;TextField
-                        label="Password"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        type="password"
-                        value={password}
-                        onChange={(e) =&gt; setPassword(e.target.value)}
-                    /&gt;
-                    &lt;FormControl fullWidth margin="normal"&gt;
-                        &lt;InputLabel id="role-label"&gt;Role&lt;/InputLabel&gt;
-                        &lt;Select
-                            labelId="role-label"
-                            multiple
-                            value={roles}
-                            onChange={handleChange}
-                            input={&lt;OutlinedInput id="select-multiple-chip" label="Chip" /&gt;}
-                            renderValue={(selected) =&gt; (
-                                &lt;Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}&gt;
-                                    {selected.map((value) =&gt; (
-                                        &lt;Chip key={value} label={value} /&gt;
-                                    ))}
-                                &lt;/Box&gt;
-                            )}
-                        &gt;
-                            &lt;MenuItem value="ADMIN"&gt;Admin&lt;/MenuItem&gt;
-                            &lt;MenuItem value="EMPLOYEE_MANAGER"&gt;Employee Manager&lt;/MenuItem&gt;
-                            &lt;MenuItem value="PROJECT_MANAGER"&gt;Project Manager&lt;/MenuItem&gt;
-                            &lt;MenuItem value="GUEST"&gt;Guest&lt;/MenuItem&gt;
-                        &lt;/Select&gt;
-                    &lt;/FormControl&gt;
-                    &lt;Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        onClick={handleRegister}
-                        sx={{ mt: 2 }}
-                    &gt;
-                        Confirm
-                    &lt;/Button&gt;
-                &lt;/div&gt;
-            &lt;/Box&gt;
-        &lt;/Container&gt;
-    );
+              {/* Role options */}
+              &lt;MenuItem value="ADMIN"&gt;Admin&lt;/MenuItem&gt;
+              &lt;MenuItem value="EMPLOYEE_MANAGER"&gt;Employee Manager&lt;/MenuItem&gt;
+              &lt;MenuItem value="PROJECT_MANAGER"&gt;Project Manager&lt;/MenuItem&gt;
+              &lt;MenuItem value="GUEST"&gt;Guest&lt;/MenuItem&gt;
+            &lt;/Select&gt;
+          &lt;/FormControl&gt;
+          {/* Register button */}
+          &lt;Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={handleRegister}
+            sx={{ mt: 2 }}
+          &gt;
+            Confirm
+          &lt;/Button&gt;
+        &lt;/div&gt;
+      &lt;/Box&gt;
+    &lt;/Container&gt;
+  );
 };
 &nbsp;
-export default RegisterComponent;</pre></td></tr></table></pre>
+export default RegisterComponent;
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-10-10T10:47:44.232Z
+                at 2024-12-03T21:14:46.936Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

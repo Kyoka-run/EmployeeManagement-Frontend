@@ -66,14 +66,9 @@ function UserAccountComponent() {
       )}
       <CardContent>
         <Typography gutterBottom variant="h4" component="div">
-          User Account
+          Welcome {user.username}
         </Typography>
-        <Typography variant="h6" sx={{ color: 'text.secondary' }}>
-          Username: {user.username}
-        </Typography>
-        <Typography variant="h6" sx={{ color: 'text.secondary' }}>
-          Email: {user.email ? user.email : 'N/A'}
-        </Typography>
+
 
         <Box sx={{ mt: 4 }}>
           <Typography variant="h5" gutterBottom>

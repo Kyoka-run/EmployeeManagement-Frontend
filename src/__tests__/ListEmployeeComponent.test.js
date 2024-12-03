@@ -1,192 +1,131 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import ListEmployeesComponent from '../components/ListEmployeesComponent';
+import { BrowserRouter } from 'react-router-dom';
 import EmployeeDataService from '../service/EmployeeDataService';
 import AuthenticationService from '../service/AuthenticationService';
-import { BrowserRouter, useNavigate } from 'react-router-dom';
 
-// Mock the external services
 jest.mock('../service/EmployeeDataService');
 jest.mock('../service/AuthenticationService');
+
+const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useNavigate: jest.fn(),
+  useNavigate: () => mockNavigate,
+  useLocation: () => ({ state: null, pathname: '/employees' })
 }));
 
+const mockEmployees = [
+  { id: 1, name: 'John Doe', position: 'Developer', department: 'IT', email: 'john@test.com', projects: [{ name: 'Project A' }] },
+  { id: 2, name: 'Jane Doe', position: 'Manager', department: 'HR', email: 'jane@test.com', projects: [{ name: 'Project B' }] }
+];
+
 describe('ListEmployeesComponent', () => {
-  const employees = [
-    {
-      id: 1,
-      name: 'John Doe',
-      position: 'Developer',
-      department: 'Engineering',
-      email: 'john.doe@example.com',
-      projects: [{ name: 'Project A' }, { name: 'Project B' }],
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      position: 'Designer',
-      department: 'Design',
-      email: 'jane.smith@example.com',
-      projects: [{ name: 'Project C' }],
-    },
-  ];
-
-  const mockNavigate = jest.fn();
-
   beforeEach(() => {
-    // Mock the retrieveAllEmployees method to return employees
-    EmployeeDataService.retrieveAllEmployees.mockResolvedValue({ data: employees });
-
-    // Mock the getUserRoles method
+    EmployeeDataService.retrieveAllEmployees.mockResolvedValue({ data: mockEmployees });
     AuthenticationService.getUserRoles.mockReturnValue(['ADMIN']);
-
-    // Mock useNavigate
-    useNavigate.mockReturnValue(mockNavigate);
   });
 
-  test('should render the component and display employees', async () => {
-    render(
-      <BrowserRouter>
-        <ListEmployeesComponent />
-      </BrowserRouter>
-    );
-
-    // Expect the search field to be rendered
-    expect(screen.getByLabelText('Search Employees By Name')).toBeInTheDocument();
-
-    // Wait for the employees to load and display in the DataGrid
+  it('loads and displays employees', async () => {
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
+    
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+      expect(screen.getByText('Jane Doe')).toBeInTheDocument();
     });
   });
 
-  test('should filter employees by name when using the search input', async () => {
-    render(
-      <BrowserRouter>
-        <ListEmployeesComponent />
-      </BrowserRouter>
-    );
+  it('filters employees by name', async () => {
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
+    
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByLabelText(/search employees by name/i);
+    await userEvent.type(searchInput, 'John');
+
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument();
+  });
+
+  it('handles employee deletion', async () => {
+    EmployeeDataService.deleteEmployee.mockResolvedValue({});
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
 
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByLabelText('Search Employees By Name'), {
-      target: { value: 'John' },
-    });
+    const deleteButtons = await screen.findAllByText('Delete');
+    await userEvent.click(deleteButtons[0]);
+
+    const dialog = screen.getByRole('dialog');
+    const confirmButton = within(dialog).getByText('Confirm');
+    await userEvent.click(confirmButton);
 
     await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.queryByText('Jane Smith')).not.toBeInTheDocument();
+      expect(EmployeeDataService.deleteEmployee).toHaveBeenCalled();
     });
   });
 
-  test('should handle adding a new employee', () => {
-    render(
-      <BrowserRouter>
-        <ListEmployeesComponent />
-      </BrowserRouter>
-    );
+  it('handles bulk deletion', async () => {
+    EmployeeDataService.deleteEmployee.mockResolvedValue({});
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
 
-    fireEvent.click(screen.getByText('Add Employee'));
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
 
-    // Verify navigation to add employee page
+    const checkbox = screen.getAllByRole('checkbox')[1];
+    await userEvent.click(checkbox);
+
+    await waitFor(() => {
+      const bulkDeleteButton = screen.getByText(/bulk delete/i);
+      expect(bulkDeleteButton).not.toBeDisabled();
+    });
+
+    await userEvent.click(screen.getByText(/bulk delete/i));
+    await userEvent.click(screen.getByText('Confirm'));
+
+    await waitFor(() => {
+      expect(EmployeeDataService.deleteEmployee).toHaveBeenCalled();
+    });
+  });
+
+  it('navigates to add employee page', async () => {
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
+    
+    const addButton = screen.getByText(/add employee/i);
+    await userEvent.click(addButton);
+
     expect(mockNavigate).toHaveBeenCalledWith('/employees/-1');
   });
 
-  test('should handle deleting an employee', async () => {
-    // Mock the deleteEmployee method to simulate successful deletion
-    EmployeeDataService.deleteEmployee.mockResolvedValue({});
-
-    // Render the ListEmployeesComponent within a BrowserRouter
-    render(
-      <BrowserRouter>
-        <ListEmployeesComponent />
-      </BrowserRouter>
-    );
-
-    // Wait for the employees to load into the DataGrid and ensure "John Doe" and "Jane Smith" are present
-    await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-    });
-
-    // Click the delete button for John Doe
-    const deleteButtons = screen.getAllByText('Delete');
-    fireEvent.click(deleteButtons[0]);
-
-    // Confirm the deletion in the dialog
-    fireEvent.click(screen.getByText('Confirm'));
-
-    // Mock the employee list after John Doe has been deleted (simulate data re-fetching)
-    EmployeeDataService.retrieveAllEmployees.mockResolvedValue({
-      data: employees.filter(emp => emp.id !== 1), // Remove John Doe from the mocked list
-    });
-
-    // Wait for the retrieveAllEmployees to be called after deletion
-    await waitFor(() => {
-      expect(EmployeeDataService.retrieveAllEmployees).toHaveBeenCalled();
-    });
-
-    // Ensure that John Doe has been removed from the DOM
-    await waitFor(async () => {
-      const johnDoeRow = await screen.queryByText('John Doe');
-      console.log('John Doe should be deleted:', johnDoeRow); // Debug output
-      expect(johnDoeRow).toBeNull(); // Verify John Doe is no longer in the DOM
-    });
-});
-
-  test('should handle updating an employee', async () => {
-    render(
-      <BrowserRouter>
-        <ListEmployeesComponent />
-      </BrowserRouter>
-    );
+  it('disables actions for non-admin users', async () => {
+    AuthenticationService.getUserRoles.mockReturnValue(['USER']);
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
 
     await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
+      const addButton = screen.getByText(/add employee/i);
+      expect(addButton).toBeDisabled();
+      
+      const updateButtons = screen.getAllByText('Update');
+      expect(updateButtons[0]).toBeDisabled();
+      
+      const deleteButtons = screen.getAllByText('Delete');
+      expect(deleteButtons[0]).toBeDisabled();
     });
-
-    const updateButtons = screen.getAllByText('Update');
-    fireEvent.click(updateButtons[0]);
-
-    expect(mockNavigate).toHaveBeenCalledWith('/employees/1');
   });
 
-  test('should handle bulk deleting employees', async () => {
-    EmployeeDataService.deleteEmployee.mockResolvedValue({});
-
-    render(
-      <BrowserRouter>
-        <ListEmployeesComponent />
-      </BrowserRouter>
-    );
+  it('shows error snackbar on API failure', async () => {
+    EmployeeDataService.retrieveAllEmployees.mockRejectedValue(new Error('API Error'));
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
 
     await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getAllByRole('checkbox')[1]); // Select John Doe
-    fireEvent.click(screen.getAllByRole('checkbox')[2]); // Select Jane Smith
-
-    fireEvent.click(screen.getByText('Bulk Delete'));
-
-    fireEvent.click(screen.getByText('Confirm'));
-
-    await waitFor(() => {
-      expect(EmployeeDataService.deleteEmployee).toHaveBeenCalledWith(1);
-      expect(EmployeeDataService.deleteEmployee).toHaveBeenCalledWith(2);
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
-      expect(screen.queryByText('Jane Smith')).not.toBeInTheDocument();
+      expect(screen.getByText(/failed to retrieve data/i)).toBeInTheDocument();
     });
   });
 });

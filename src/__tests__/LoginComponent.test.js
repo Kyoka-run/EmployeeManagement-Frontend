@@ -1,119 +1,89 @@
-import { render, screen, fireEvent, act } from '@testing-library/react'; 
-import LoginComponent from '../components/LoginComponent'; 
-import AuthenticationService from '../service/AuthenticationService';  
-import { MContext } from '../components/MyProvider.jsx';  
-import { MemoryRouter } from 'react-router-dom';  
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import { BrowserRouter } from 'react-router-dom';
+import LoginComponent from '../components/LoginComponent';
+import AuthenticationService from '../service/AuthenticationService';
+import { MContext } from '../components/MyProvider';
 
-// Mock the withRouter higher-order component (HOC) to avoid testing route functionality
-jest.mock('../components/withRouter.jsx', () => (component) => component);
-
-// Mock the AuthenticationService functions so that they don't make real API calls during testing
-jest.mock('../service/AuthenticationService', () => ({
-  login: jest.fn(),  // Mock login function
-  registerSuccessfulLogin: jest.fn(),  // Mock registerSuccessfulLogin function
+jest.mock('../service/AuthenticationService');
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => jest.fn()
 }));
 
-describe('LoginComponent', () => {  // Start of the test suite for the LoginComponent
+const mockContext = {
+  setIsUserLoggedIn: jest.fn(),
+  setUser: jest.fn()
+};
 
-  // Mock navigation function (simulates the use of history in real app)
-  const mockNavigation = jest.fn();
+const TestWrapper = ({ children }) => (
+  <BrowserRouter>
+    <MContext.Provider value={mockContext}>
+      {children}
+    </MContext.Provider>
+  </BrowserRouter>
+);
 
-  // Mock context that simulates the provider's context used in the real app
-  const mockContext = { setIsUserLoggedIn: jest.fn() };
+describe('LoginComponent', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  // Function to render the component with required context and router for each test
-  const renderComponent = () => {
-    return render(
-      <MemoryRouter>
-        <MContext.Provider value={mockContext}>
-          <LoginComponent navigation={mockNavigation} />
-        </MContext.Provider>
-      </MemoryRouter>
-    );
-  };
-
-  // Test case 1: Ensure that the login form renders correctly
-  it('should render the login form', () => {
-    renderComponent();  // Render the LoginComponent
-    
-    // Verify if various elements of the form exist
+  it('renders login form', () => {
+    render(<LoginComponent />, { wrapper: TestWrapper });
     expect(screen.getByTestId('loginHeader')).toHaveTextContent('Login');
-    expect(screen.getByTestId('username')).toBeInTheDocument();
-    expect(screen.getByTestId('password')).toBeInTheDocument();
-    expect(screen.getByTestId('login')).toBeInTheDocument();
+    expect(screen.getByLabelText(/user name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
   });
 
-  // Test case 2: Simulate input changes in the username and password fields
-  it('should update state on input change', () => {
-    renderComponent();
+  it('handles successful login', async () => {
+    const loginResponse = { data: { userId: 1, token: 'token123' } };
+    AuthenticationService.login.mockResolvedValue(loginResponse);
+    
+    render(<LoginComponent />, { wrapper: TestWrapper });
 
-    // Get the actual input elements inside the MUI TextField components
-    const usernameInput = screen.getByLabelText('User Name');
-    const passwordInput = screen.getByLabelText('Password');
+    const usernameInput = screen.getByLabelText(/user name/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    
+    await userEvent.type(usernameInput, 'testuser');
+    await userEvent.type(passwordInput, 'password123');
+    await userEvent.click(screen.getByRole('button', { name: /login/i }));
 
-    // Simulate typing in the username and password fields
-    act(() => {
-      fireEvent.change(usernameInput, { target: { value: 'testuser', name: 'username' } });
-      fireEvent.change(passwordInput, { target: { value: 'password', name: 'password' } });
+    await waitFor(() => {
+      expect(AuthenticationService.login).toHaveBeenCalledWith('testuser', 'password123');
+      expect(mockContext.setIsUserLoggedIn).toHaveBeenCalledWith(true);
+      expect(mockContext.setUser).toHaveBeenCalledWith({ id: 1, username: 'testuser' });
     });
-
-    // Verify if the input fields contain the new values
-    expect(usernameInput.value).toBe('testuser');
-    expect(passwordInput.value).toBe('password');
   });
 
-  // Test case 3: Handle login success and check if the user is redirected properly
-  it('should handle login success', async () => {
-    AuthenticationService.login.mockResolvedValue({});  // Simulate successful login response
-    renderComponent();
+  it('handles failed login', async () => {
+    AuthenticationService.login.mockRejectedValue(new Error('Invalid credentials'));
+    
+    render(<LoginComponent />, { wrapper: TestWrapper });
 
-    const loginButton = screen.getByTestId('login');  // Get the login button
+    const usernameInput = screen.getByLabelText(/user name/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    
+    await userEvent.type(usernameInput, 'wronguser');
+    await userEvent.type(passwordInput, 'wrongpass');
+    await userEvent.click(screen.getByRole('button', { name: /login/i }));
 
-    // Simulate clicking the login button and wait for async state changes
-    await act(async () => {
-      fireEvent.click(loginButton);
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(/invalid credentials/i);
+      expect(mockContext.setIsUserLoggedIn).toHaveBeenCalledWith(false);
     });
-
-    // Ensure the mocked login function was called with correct arguments
-    expect(AuthenticationService.login).toHaveBeenCalledWith('', '');  // Empty values for simplicity here
-
-    // Ensure the user is marked as logged in and redirected to the /employees route
-    expect(mockContext.setIsUserLoggedIn).toHaveBeenCalledWith(true);
-    expect(mockNavigation).toHaveBeenCalledWith('/employees');
   });
 
-  // Test case 4: Handle login failure and check if the proper error message appears
-  it('should handle login failure', async () => {
-    AuthenticationService.login.mockRejectedValue({});  // Simulate login failure
-    renderComponent();
+  it('navigates to register page', async () => {
+    const navigateMock = jest.fn();
+    jest.spyOn(require('react-router-dom'), 'useNavigate').mockImplementation(() => navigateMock);
 
-    const loginButton = screen.getByTestId('login');  // Get the login button
+    render(<LoginComponent />, { wrapper: TestWrapper });
+    await userEvent.click(screen.getByText(/no account\? register here/i));
 
-    // Simulate clicking the login button and wait for async state changes
-    await act(async () => {
-      fireEvent.click(loginButton);
-    });
-
-    // Ensure the login function was called
-    expect(AuthenticationService.login).toHaveBeenCalled();
-
-    // Ensure the user is marked as not logged in and an error message appears
-    expect(mockContext.setIsUserLoggedIn).toHaveBeenCalledWith(false);
-    expect(screen.getByText('Invalid Credentials')).toBeInTheDocument();  // Error message for invalid credentials
-  });
-
-  // Test case 5: Simulate the user clicking the register link and ensure they are redirected
-  it('should navigate to register page on clicking register link', () => {
-    renderComponent();
-
-    const registerLink = screen.getByText(/No account\? Register here/i);  // Find the register link by its text
-
-    act(() => {
-      fireEvent.click(registerLink);  // Simulate a click on the register link
-    });
-
-    // Ensure the navigation function was called with the '/register' route
-    expect(mockNavigation).toHaveBeenCalledWith('/register');
+    expect(navigateMock).toHaveBeenCalledWith('/register');
   });
 });

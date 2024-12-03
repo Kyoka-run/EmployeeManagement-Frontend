@@ -1,121 +1,155 @@
+import AuthenticationService from '../service/AuthenticationService';
 import axios from 'axios';
-import AuthenticationService, { USER_NAME_SESSION_ATTRIBUTE_NAME, USER_ROLES_SESSION_ATTRIBUTE_NAME } from '../service/AuthenticationService';
 
 // Mock axios
 jest.mock('axios');
 
 describe('AuthenticationService', () => {
-
-    afterEach(() => {
-        // Clear the session storage after each test
+    // Setup before each test
+    beforeEach(() => {
+        // Clear storage
+        localStorage.clear();
         sessionStorage.clear();
+        // Reset axios mocks
+        jest.clearAllMocks();
     });
 
-    it('should login and store the username and roles', async () => {
-        const mockResponse = { data: 'mocked response' };
-        const mockRolesResponse = { data: ['ROLE_USER', 'ROLE_ADMIN'] };
-    
-        axios.post.mockResolvedValueOnce(mockResponse);
-        axios.get.mockResolvedValueOnce(mockRolesResponse);
-    
-        const username = 'testUser';
-        const password = 'testPassword';
-    
-        const response = await AuthenticationService.login(username, password);
-    
-        // Check if login returns the correct response
-        expect(response).toEqual(mockResponse);
-    
-        // Check if username is stored in sessionStorage
-        expect(sessionStorage.getItem(USER_NAME_SESSION_ATTRIBUTE_NAME)).toBe(username);
-    
-        // Wait for fetchUserRoles to complete and roles to be stored
-        await AuthenticationService.fetchUserRoles();
-    
-        // Check if roles are fetched and stored in sessionStorage
-        expect(sessionStorage.getItem(USER_ROLES_SESSION_ATTRIBUTE_NAME)).toBe(JSON.stringify(mockRolesResponse.data));
+    // Test login functionality
+    describe('login', () => {
+        it('should successfully login and store token', async () => {
+            const mockResponse = {
+                data: {
+                    token: 'fake-jwt-token',
+                    userId: '123'
+                }
+            };
+            axios.post.mockResolvedValue(mockResponse);
+
+            const response = await AuthenticationService.login('testuser', 'password');
+
+            expect(axios.post).toHaveBeenCalledWith(
+                expect.stringContaining('/login'),
+                { username: 'testuser', password: 'password' }
+            );
+            expect(localStorage.getItem('jwtToken')).toBe('fake-jwt-token');
+            expect(sessionStorage.getItem('userId')).toBe('123');
+            expect(response).toEqual(mockResponse);
+        });
+
+        it('should handle login failure', async () => {
+            const errorMessage = 'Invalid credentials';
+            axios.post.mockRejectedValue(new Error(errorMessage));
+
+            await expect(AuthenticationService.login('testuser', 'wrong'))
+                .rejects.toThrow(errorMessage);
+        });
     });
 
-    it('should register successful login and fetch user roles', async () => {
-        const mockRolesResponse = { data: ['ROLE_USER'] };
-        axios.get.mockResolvedValueOnce(mockRolesResponse);
+    // Test JWT token management
+    describe('JWT token management', () => {
+        it('should correctly get JWT token', () => {
+            localStorage.setItem('jwtToken', 'test-token');
+            expect(AuthenticationService.getJwtToken()).toBe('test-token');
+        });
 
-        const username = 'testUser';
-        const id = 1;
-
-        await AuthenticationService.registerSuccessfulLogin(username, id);
-
-        // Check if username is stored in sessionStorage
-        expect(sessionStorage.getItem(USER_NAME_SESSION_ATTRIBUTE_NAME)).toBe(username);
-
-        // Check if roles are fetched and stored in sessionStorage
-        expect(sessionStorage.getItem(USER_ROLES_SESSION_ATTRIBUTE_NAME)).toBe(JSON.stringify(mockRolesResponse.data));
+        it('should setup axios interceptors with token', () => {
+            const token = 'test-token';
+            AuthenticationService.setupAxiosInterceptors(token);
+            
+            const interceptor = axios.interceptors.request.use.mock.calls[0][0];
+            const config = { headers: {} };
+            const result = interceptor(config);
+            
+            expect(result.headers.Authorization).toBe(`Bearer ${token}`);
+        });
     });
 
-    it('should fetch user roles and store in sessionStorage', async () => {
-        const mockRolesResponse = { data: ['ROLE_USER'] };
-        axios.get.mockResolvedValueOnce(mockRolesResponse);
+    // Test user roles functionality
+    describe('user roles', () => {
+        it('should fetch and store user roles', async () => {
+            const mockRoles = ['ADMIN', 'USER'];
+            axios.get.mockResolvedValue({ data: mockRoles });
 
-        await AuthenticationService.fetchUserRoles();
+            await AuthenticationService.fetchUserRoles();
 
-        // Check if roles are fetched and stored in sessionStorage
-        expect(sessionStorage.getItem(USER_ROLES_SESSION_ATTRIBUTE_NAME)).toBe(JSON.stringify(mockRolesResponse.data));
+            expect(axios.get).toHaveBeenCalledWith(
+                expect.stringContaining('/roles'),
+                expect.any(Object)
+            );
+            expect(JSON.parse(sessionStorage.getItem('userRoles'))).toEqual(mockRoles);
+        });
+
+        it('should handle role fetching error', async () => {
+            axios.get.mockRejectedValue(new Error('Network error'));
+            await AuthenticationService.fetchUserRoles();
+            expect(sessionStorage.getItem('userRoles')).toBeNull();
+        });
+
+        it('should get user roles from session storage', () => {
+            const mockRoles = ['ADMIN', 'USER'];
+            sessionStorage.setItem('userRoles', JSON.stringify(mockRoles));
+            expect(AuthenticationService.getUserRoles()).toEqual(mockRoles);
+        });
     });
 
-    it('should return roles from sessionStorage', () => {
-        const mockRoles = ['ROLE_USER', 'ROLE_ADMIN'];
-        sessionStorage.setItem(USER_ROLES_SESSION_ATTRIBUTE_NAME, JSON.stringify(mockRoles));
+    // Test login status
+    describe('login status', () => {
+        it('should correctly identify logged in user', () => {
+            localStorage.setItem('jwtToken', 'test-token');
+            expect(AuthenticationService.isUserLoggedIn()).toBe(true);
+        });
 
-        const roles = AuthenticationService.getUserRoles();
-
-        // Check if the roles are returned correctly
-        expect(roles).toEqual(mockRoles);
+        it('should correctly identify logged out user', () => {
+            expect(AuthenticationService.isUserLoggedIn()).toBe(false);
+        });
     });
 
-    it('should return true if user is logged in', () => {
-        sessionStorage.setItem(USER_NAME_SESSION_ATTRIBUTE_NAME, 'testUser');
-        
-        const isLoggedIn = AuthenticationService.isUserLoggedIn();
+    // Test logout functionality
+    describe('logout', () => {
+        it('should clear all storage and reset axios header', () => {
+            // Setup initial state
+            localStorage.setItem('jwtToken', 'test-token');
+            sessionStorage.setItem('userRoles', JSON.stringify(['ADMIN']));
+            sessionStorage.setItem('userId', '123');
+            sessionStorage.setItem('authenticatedUser', 'testuser');
 
-        // Check if the user is logged in
-        expect(isLoggedIn).toBe(true);
+            const mockContext = {
+                setIsUserLoggedIn: jest.fn()
+            };
+
+            AuthenticationService.logout(mockContext);
+
+            expect(localStorage.getItem('jwtToken')).toBeNull();
+            expect(sessionStorage.getItem('userRoles')).toBeNull();
+            expect(sessionStorage.getItem('userId')).toBeNull();
+            expect(sessionStorage.getItem('authenticatedUser')).toBeNull();
+            expect(mockContext.setIsUserLoggedIn).toHaveBeenCalledWith(false);
+        });
     });
 
-    it('should return false if user is not logged in', () => {
-        const isLoggedIn = AuthenticationService.isUserLoggedIn();
+    // Test user operations
+    describe('user operations', () => {
+        it('should retrieve user details', async () => {
+            const mockUser = { id: '123', username: 'testuser' };
+            axios.get.mockResolvedValue({ data: mockUser });
 
-        // Check if the user is not logged in
-        expect(isLoggedIn).toBe(false);
-    });
+            const response = await AuthenticationService.retrieveUser('123');
+            expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/users/123'));
+            expect(response.data).toEqual(mockUser);
+        });
 
-    it('should log out and remove session storage items', async () => {
-        sessionStorage.setItem(USER_NAME_SESSION_ATTRIBUTE_NAME, 'testUser');
-        sessionStorage.setItem(USER_ROLES_SESSION_ATTRIBUTE_NAME, JSON.stringify(['ROLE_USER']));
-        
-        axios.post.mockResolvedValueOnce({});  // Mock logout API call
+        it('should update password', async () => {
+            const passwordUpdateRequest = {
+                oldPassword: 'old',
+                newPassword: 'new'
+            };
+            axios.put.mockResolvedValue({ data: { message: 'Success' } });
 
-        const mockContext = { setIsUserLoggedIn: jest.fn() };
-
-        await AuthenticationService.logout(mockContext);
-
-        // Check if the sessionStorage items are removed
-        expect(sessionStorage.getItem(USER_NAME_SESSION_ATTRIBUTE_NAME)).toBeNull();
-        expect(sessionStorage.getItem(USER_ROLES_SESSION_ATTRIBUTE_NAME)).toBeNull();
-
-        // Check if setIsUserLoggedIn is called with false
-        expect(mockContext.setIsUserLoggedIn).toHaveBeenCalledWith(false);
-    });
-
-    it('should set up axios interceptors', () => {
-        // Mock session storage
-        sessionStorage.setItem(USER_NAME_SESSION_ATTRIBUTE_NAME, 'testUser');
-        
-        // Spy on axios interceptors
-        const interceptorSpy = jest.spyOn(axios.interceptors.request, 'use');
-
-        AuthenticationService.setupAxiosInterceptors();
-
-        // Ensure the interceptor was set
-        expect(interceptorSpy).toHaveBeenCalled();
+            await AuthenticationService.updatePassword('123', passwordUpdateRequest);
+            expect(axios.put).toHaveBeenCalledWith(
+                expect.stringContaining('/users/123/update-password'),
+                passwordUpdateRequest
+            );
+        });
     });
 });
