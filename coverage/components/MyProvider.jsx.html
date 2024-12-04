@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">18.18% </span>
+                <span class="strong">81.81% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/11</span>
+                <span class='fraction'>9/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>1/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">18.18% </span>
+                <span class="strong">81.81% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/11</span>
+                <span class='fraction'>9/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -100,20 +100,20 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -130,21 +130,21 @@ import React, { useState, useEffect, createContext } from "react";
 &nbsp;
 export const MContext = createContext();
 &nbsp;
-const MyProvider = <span class="fstat-no" title="function not covered" >({</span> children }) =&gt; {
-  const [isUserLoggedIn, setIsUserLoggedIn] = <span class="cstat-no" title="statement not covered" >useState(false);</span>
-  const [user, setUser] = <span class="cstat-no" title="statement not covered" >useState(null);</span>
+const MyProvider = ({ children }) =&gt; {
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-    const isLoggedIn = <span class="cstat-no" title="statement not covered" >AuthenticationService.isUserLoggedIn();</span>
-<span class="cstat-no" title="statement not covered" >    setIsUserLoggedIn(isLoggedIn);</span>
-<span class="cstat-no" title="statement not covered" >    if (isLoggedIn) {</span>
+  useEffect(() =&gt; {
+    const isLoggedIn = AuthenticationService.isUserLoggedIn();
+    setIsUserLoggedIn(isLoggedIn);
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (isLoggedIn) {
       // get user from sessionStorage
       const storedUser = <span class="cstat-no" title="statement not covered" >JSON.parse(sessionStorage.getItem('authenticatedUser'));</span>
 <span class="cstat-no" title="statement not covered" >      setUser(storedUser);</span>
     }
   }, []);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return (</span>
+  return (
     &lt;MContext.Provider value={{
       state: { isUserLoggedIn, user },
       setIsUserLoggedIn,
@@ -163,7 +163,7 @@ export default MyProvider;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-12-03T21:06:51.876Z
+                at 2024-12-04T01:12:39.537Z
             </div>
         <script src="../prettify.js"></script>
         <script>

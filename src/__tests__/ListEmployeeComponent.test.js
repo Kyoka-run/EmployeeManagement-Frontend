@@ -128,4 +128,110 @@ describe('ListEmployeesComponent', () => {
       expect(screen.getByText(/failed to retrieve data/i)).toBeInTheDocument();
     });
   });
+
+  it('handles dialog cancellation', async () => {
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
+  
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+  
+    const deleteButtons = await screen.findAllByText('Delete');
+    await userEvent.click(deleteButtons[0]);
+  
+    await userEvent.click(screen.getByText('Cancel'));
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Are you sure you want to delete')).not.toBeInTheDocument();
+    });
+  });
+  
+  it('handles bulk delete dialog cancellation', async () => {
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
+   
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+   
+    const checkbox = screen.getAllByRole('checkbox')[1];
+    await userEvent.click(checkbox);
+   
+    await userEvent.click(screen.getByText('Bulk Delete'));
+    
+    await waitFor(() => {
+      expect(screen.getByText('Confirm Bulk Delete')).toBeInTheDocument();
+    });
+   
+    const cancelButton = screen.getByText('Cancel');
+    await userEvent.click(cancelButton);
+   
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+  
+  it('handles employee deletion failure', async () => {
+    EmployeeDataService.deleteEmployee.mockRejectedValue(new Error('Delete failed'));
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
+  
+    const deleteButton = (await screen.findAllByText('Delete'))[0];
+    await userEvent.click(deleteButton);
+    await userEvent.click(screen.getByText('Confirm'));
+  
+    await waitFor(() => {
+      expect(screen.getByText(/failed to delete employee/i)).toBeInTheDocument();
+    });
+  });
+  
+  it('handles bulk deletion failure', async () => {
+    EmployeeDataService.deleteEmployee.mockRejectedValue(new Error('Delete failed'));
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
+   
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+   
+    const checkbox = screen.getAllByRole('checkbox')[1];
+    await userEvent.click(checkbox);
+   
+    await waitFor(() => {
+      expect(screen.getByText('Bulk Delete')).not.toBeDisabled();
+    });
+    
+    await userEvent.click(screen.getByText('Bulk Delete'));
+    await userEvent.click(screen.getByText('Confirm'));
+   
+    await waitFor(() => {
+      expect(screen.getByText(/failed to delete selected/i)).toBeInTheDocument();
+    });
+  });
+  
+  it('handles search text clearing', async () => {
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
+  
+    const searchInput = screen.getByLabelText(/search employees by name/i);
+    await userEvent.type(searchInput, 'John');
+    await userEvent.clear(searchInput);
+  
+    await waitFor(() => {
+      expect(screen.getByText('Jane Doe')).toBeInTheDocument();
+      expect(screen.getByText('John Doe')).toBeInTheDocument();
+    });
+  });
+  
+  it('closes snackbar when clicking close', async () => {
+    EmployeeDataService.retrieveAllEmployees.mockRejectedValue(new Error('API Error'));
+    render(<ListEmployeesComponent />, { wrapper: BrowserRouter });
+  
+    await waitFor(() => {
+      const alert = screen.getByRole('alert');
+      expect(alert).toBeInTheDocument();
+    });
+  
+    await userEvent.click(screen.getByLabelText('Close'));
+  
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+  });
 });

@@ -174,13 +174,9 @@ function EmployeeComponent() {
                 value={projects}
                 onChange={handleProjectChange}
                 renderValue={(selected) => selected.map((proj) => proj.name).join(', ')}
-                MenuProps={{ 
-                  container: undefined,
-                  slotProps: { paper: { 'data-testid': 'select-menu' } }
-                }}
               >
                 {allProjects.map((project) => (
-                  <MenuItem key={project.id} value={project}>
+                  <MenuItem key={project.id} value={project} data-testid={`project-item-${project.id}`}>
                     <Checkbox checked={projects.some(p => p.id === project.id)} />
                     <ListItemText primary={project.name} />
                   </MenuItem>

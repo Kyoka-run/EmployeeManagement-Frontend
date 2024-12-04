@@ -128,4 +128,110 @@ describe('ListProjectsComponent', () => {
       expect(screen.getByText(/failed to retrieve data/i)).toBeInTheDocument();
     });
   });
+
+  it('handles dialog cancellation', async () => {
+    render(<ListProjectsComponent />, { wrapper: BrowserRouter });
+  
+    await waitFor(() => {
+      expect(screen.getByText('Project A')).toBeInTheDocument();
+    });
+  
+    const deleteButtons = await screen.findAllByText('Delete');
+    await userEvent.click(deleteButtons[0]);
+  
+    await userEvent.click(screen.getByText('Cancel'));
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Are you sure you want to delete')).not.toBeInTheDocument();
+    });
+  });
+  
+  it('handles bulk delete dialog cancellation', async () => {
+    render(<ListProjectsComponent />, { wrapper: BrowserRouter });
+   
+    await waitFor(() => {
+      expect(screen.getByText('Project A')).toBeInTheDocument();
+    });
+   
+    const checkbox = screen.getAllByRole('checkbox')[1];
+    await userEvent.click(checkbox);
+   
+    await userEvent.click(screen.getByText('Bulk Delete'));
+    
+    await waitFor(() => {
+      expect(screen.getByText('Confirm Bulk Delete')).toBeInTheDocument();
+    });
+   
+    const cancelButton = screen.getByText('Cancel');
+    await userEvent.click(cancelButton);
+   
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+  
+  it('handles project deletion failure', async () => {
+    ProjectDataService.deleteProject.mockRejectedValue(new Error('Delete failed'));
+    render(<ListProjectsComponent />, { wrapper: BrowserRouter });
+  
+    const deleteButton = (await screen.findAllByText('Delete'))[0];
+    await userEvent.click(deleteButton);
+    await userEvent.click(screen.getByText('Confirm'));
+  
+    await waitFor(() => {
+      expect(screen.getByText(/failed to delete project/i)).toBeInTheDocument();
+    });
+  });
+  
+  it('handles bulk deletion failure', async () => {
+    ProjectDataService.deleteProject.mockRejectedValue(new Error('Delete failed'));
+    render(<ListProjectsComponent />, { wrapper: BrowserRouter });
+   
+    await waitFor(() => {
+      expect(screen.getByText('Project A')).toBeInTheDocument();
+    });
+   
+    const checkbox = screen.getAllByRole('checkbox')[1];
+    await userEvent.click(checkbox);
+   
+    await waitFor(() => {
+      expect(screen.getByText('Bulk Delete')).not.toBeDisabled();
+    });
+    
+    await userEvent.click(screen.getByText('Bulk Delete'));
+    await userEvent.click(screen.getByText('Confirm'));
+   
+    await waitFor(() => {
+      expect(screen.getByText(/failed to delete selected/i)).toBeInTheDocument();
+    });
+  });
+  
+  it('handles search text clearing', async () => {
+    render(<ListProjectsComponent />, { wrapper: BrowserRouter });
+  
+    const searchInput = screen.getByLabelText(/search projects by name/i);
+    await userEvent.type(searchInput, 'Project A');
+    await userEvent.clear(searchInput);
+  
+    await waitFor(() => {
+      expect(screen.getByText('Project A')).toBeInTheDocument();
+      expect(screen.getByText('Project B')).toBeInTheDocument();
+    });
+  });
+  
+  it('closes snackbar when clicking close', async () => {
+    ProjectDataService.retrieveAllProjects.mockRejectedValue(new Error('API Error'));
+    render(<ListProjectsComponent />, { wrapper: BrowserRouter });
+  
+    await waitFor(() => {
+      const alert = screen.getByRole('alert');
+      expect(alert).toBeInTheDocument();
+    });
+  
+    await userEvent.click(screen.getByLabelText('Close'));
+  
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+  });
 });

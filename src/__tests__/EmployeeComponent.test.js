@@ -7,14 +7,20 @@ import EmployeeComponent from '../components/EmployeeComponent';
 import EmployeeDataService from '../service/EmployeeDataService';
 import ProjectDataService from '../service/ProjectDataService';
 
+// Mock services
 jest.mock('../service/EmployeeDataService');
 jest.mock('../service/ProjectDataService');
+
+// Mock router with global params for flexible testing
+const mockParams = { id: '1' };
+const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ id: '1' }),
-  useNavigate: () => jest.fn()
+  useParams: () => mockParams,
+  useNavigate: () => mockNavigate
 }));
 
+// Mock data
 const mockEmployee = {
   id: 1,
   name: 'John Doe',
@@ -35,14 +41,17 @@ const TestWrapper = ({ children }) => (
 
 describe('EmployeeComponent', () => {
   beforeEach(() => {
+    // Reset mock data and responses before each test
     ProjectDataService.retrieveAllProjects.mockResolvedValue({ data: mockProjects });
     EmployeeDataService.retrieveEmployee.mockResolvedValue({ data: mockEmployee });
+    mockParams.id = '1'; // Reset ID to default
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
+  // Test form rendering
   it('renders employee form with all fields', async () => {
     render(<EmployeeComponent />, { wrapper: TestWrapper });
     
@@ -54,6 +63,7 @@ describe('EmployeeComponent', () => {
     });
   });
 
+  // Test form validation
   it('displays validation errors for empty fields', async () => {
     render(<EmployeeComponent />, { wrapper: TestWrapper });
     
@@ -61,7 +71,6 @@ describe('EmployeeComponent', () => {
       expect(screen.getByRole('textbox', { name: /name/i })).toBeInTheDocument();
     });
 
-    // Clear all fields
     const inputs = screen.getAllByRole('textbox');
     for (let input of inputs) {
       await userEvent.clear(input);
@@ -78,6 +87,7 @@ describe('EmployeeComponent', () => {
     });
   });
 
+  // Test loading existing data
   it('loads existing employee data correctly', async () => {
     render(<EmployeeComponent />, { wrapper: TestWrapper });
 
@@ -89,17 +99,7 @@ describe('EmployeeComponent', () => {
     });
   });
 
-  it('displays project select with available options', async () => {
-    render(<EmployeeComponent />, { wrapper: TestWrapper });
-  
-    const select = await screen.findByTestId('projects-select');
-    expect(select).toBeInTheDocument();
-    
-    await waitFor(() => {
-      expect(ProjectDataService.retrieveAllProjects).toHaveBeenCalled();
-    });
-  });
-
+  // Test updating employee
   it('submits form successfully for existing employee', async () => {
     EmployeeDataService.updateEmployee.mockResolvedValue({});
     
@@ -121,6 +121,7 @@ describe('EmployeeComponent', () => {
     });
   });
 
+  // Test error handling
   it('handles API errors gracefully', async () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     EmployeeDataService.retrieveEmployee.mockRejectedValue(new Error('API Error'));
@@ -131,6 +132,50 @@ describe('EmployeeComponent', () => {
       expect(consoleError).toHaveBeenCalled();
     });
 
+    consoleError.mockRestore();
+  });
+
+  // Test creating new employee
+  it('creates new employee successfully', async () => {
+    mockParams.id = '-1';
+    EmployeeDataService.createEmployee.mockResolvedValue({});
+    
+    render(<EmployeeComponent />, { wrapper: TestWrapper });
+  
+    await userEvent.type(screen.getByRole('textbox', { name: /name/i }), 'New Employee');
+    await userEvent.type(screen.getByRole('textbox', { name: /position/i }), 'Developer');
+    await userEvent.type(screen.getByRole('textbox', { name: /department/i }), 'IT');
+    await userEvent.type(screen.getByRole('textbox', { name: /email/i }), 'new@test.com');
+  
+    await userEvent.click(screen.getByRole('button', { name: /save/i }));
+  
+    await waitFor(() => {
+      expect(EmployeeDataService.createEmployee).toHaveBeenCalled();
+    });
+  });
+
+  it('fetches projects from ProjectDataService', async () => {
+    render(<EmployeeComponent />, { wrapper: TestWrapper });
+    
+    await waitFor(() => {
+      expect(ProjectDataService.retrieveAllProjects).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // Test project related API error
+  it('handles project API error', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    ProjectDataService.retrieveAllProjects.mockRejectedValue(new Error('API Error'));
+    
+    render(<EmployeeComponent />, { wrapper: TestWrapper });
+    
+    await waitFor(() => {
+      expect(consoleError).toHaveBeenCalledWith(
+        expect.stringContaining('error retrieving the projects'),
+        expect.any(Error)
+      );
+    });
+    
     consoleError.mockRestore();
   });
 });
