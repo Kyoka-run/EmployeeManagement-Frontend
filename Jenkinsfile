@@ -19,7 +19,9 @@ pipeline {
         // build react
         stage('Build') {
             steps {
-                bat 'npm run build'
+                bat '''
+                    set "CI=false" && npm install && npm run build
+                '''
             }
         }
 
