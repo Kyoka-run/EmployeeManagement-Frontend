@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const Project_API_URL = 'http://localhost:8080/projects';
-// const Project_API_URL = 'http://98.81.209.12/projects';
+// const Project_API_URL = 'http://localhost:8080/projects';
+const Project_API_URL = 'http://3.252.231.197/projects';
 
 class ProjectDataService {
     retrieveAllProjects() {
