@@ -30,8 +30,8 @@ function RegisterComponent() {
     }
 
     try {
-      const response = await axios.post('http://localhost:8080/register', {
-      // const response = await axios.post('http://3.252.231.197/register', {
+      // const response = await axios.post('http://localhost:8080/register', {
+      const response = await axios.post('http://3.252.231.197/register', {
         username,
         password,
         roles
