@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // const Employee_API = 'http://localhost:8080';
-const Employee_API = 'http://3.252.231.197';
+const Employee_API = 'http://3.252.231.197:8080';
 
 export const USER_NAME_SESSION_ATTRIBUTE_NAME = 'authenticatedUser';
 export const USER_ROLES_SESSION_ATTRIBUTE_NAME = 'userRoles';
