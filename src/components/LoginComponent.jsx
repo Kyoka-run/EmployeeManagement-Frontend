@@ -48,6 +48,29 @@ function LoginComponent() {
             });
     };
 
+    // Handle trial login click
+    const trialLoginClicked = () => {
+        const trialUsername = "manbo";
+        const trialPassword = "manbo";
+        AuthenticationService.login(trialUsername, trialPassword)
+            .then((response) => {
+                const { userId, token } = response.data;
+                AuthenticationService.registerSuccessfulLogin(trialUsername, userId, token);
+                const user = { id: userId, username: trialUsername };
+                context.setIsUserLoggedIn(true);
+                context.setUser(user);
+
+                navigate('/employees');
+                setShowSuccessMessage(true);
+                setHasLoginFailed(false);
+            })
+            .catch(() => {
+                context.setIsUserLoggedIn(false);
+                setHasLoginFailed(true);
+                setShowSuccessMessage(false);
+            });
+    };
+
     return (
         <Container maxWidth="sm">
             <Box
@@ -99,14 +122,24 @@ function LoginComponent() {
                     >
                         Login
                     </Button>
-                    <Typography
-                        variant="body2"
-                        color="primary"
-                        sx={{ mt: 2, cursor: 'pointer', textAlign: 'center' }}
-                        onClick={handleRegister}
-                    >
-                        No account? Register here
-                    </Typography>
+                    <Stack direction="row" justifyContent="space-between" sx={{ mt: 2, width: '100%' }}>
+                        <Typography
+                            variant="body2"
+                            color="primary"
+                            sx={{ cursor: 'pointer', textAlign: 'center' }}
+                            onClick={handleRegister}
+                        >
+                            No account? Register here
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            color="secondary"
+                            sx={{ cursor: 'pointer', textAlign: 'center' }}
+                            onClick={trialLoginClicked}
+                        >
+                            Try App with Admin Account
+                        </Typography>
+                    </Stack>
                 </div>
             </Box>
         </Container>

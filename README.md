@@ -1,70 +1,166 @@
-# Getting Started with Create React App
+# Employee Management System - Spring Boot & React & MySQL
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 🎯 Project Overview
+The Employee Management System is a comprehensive full-stack web application for managing employees and projects, featuring secure user authentication, role-based authorization, and real-time data management. Built with Spring Boot, React, and MySQL.
 
-## Available Scripts
+The project consists of two main repositories:
+- Backend Repository: [`EmployeeManagement-Backend`][backend]
+- Frontend Repository: [`EmployeeManagement-Frontend`][frontend]
 
-In the project directory, you can run:
+The application is deployed and accessible through AWS:
+[`Live Demo`][demo]
 
-### `npm start`
+[backend]: https://github.com/Kyoka-run/EmployeeManagement-Backend
+[frontend]: https://github.com/Kyoka-run/EmployeeManagement-Frontend  
+[demo]: http://employee-management-frontend-kyoka.s3-website-eu-west-1.amazonaws.com
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## ✨ Key Features
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### User Authentication & Authorization
+- **JWT-based authentication**
+- **Role-based access control (ADMIN, EMPLOYEE_MANAGER, PROJECT_MANAGER, GUEST)**
+- **Secure password hashing with BCrypt**
 
-### `npm test`
+### Employee & Project Management
+- **CRUD operations**
+- **Employee & Project details**
+- **Bulk operations**
+- **Real-time search and filtering**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Advanced Features
+- **Responsive Material-UI interface**
+- **Error handling and validation**
+- **Success/Error notifications**
 
-### `npm run build`
+## ⚙️ Technologies Stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Back-end
+- **Framework:** Spring Boot 2.7.2
+- **Security:** Spring Security with JWT
+- **Database:** MySQL with JPA/Hibernate
+- **API Documentation:** Springdoc OpenAPI (Swagger)
+- **Testing:** JUnit, Mockito
+- **Build Tool:** Maven
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Front-end
+- **Framework:** React (Functional components with Hooks)
+- **UI Components:** Material-UI (MUI)
+- **HTTP Client:** Axios
+- **Form Handling:** Formik
+- **Testing:** React Testing Library, Jest
+  
+### Development
+- **Containerization:** Docker
+- **Version Control:** Git
+- **API Testing:** Swagger UI
+- **CI/CD:** Jenkins
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 📦 Installation & Setup
 
-### `npm run eject`
+### Prerequisites
+- Java 17+
+- Node.js 16+
+- MySQL 8.0+
+  
+### Backend Setup
+1. Clone the repository:
+```bash
+git clone https://github.com/Kyoka-run/EmployeeManagement-Project.git
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. Set up the MySQL database:
+```sql
+CREATE DATABASE employee_management;
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+3. Update the application.properties file with your MySQL credentials:
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/employee_management
+spring.datasource.username=YOUR_MYSQL_USERNAME
+spring.datasource.password=YOUR_MYSQL_PASSWORD
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+4. Run the application
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Frontend Setup
 
-## Learn More
+1. Install dependencies:
+```bash
+cd frontend
+npm install
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+2. Configure API endpoint:
+```javascript
+// Update API_URL in service files if needed
+const API_URL = 'http://localhost:8080';
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+3. Start development server:
+```bash
+npm start
+```
 
-### Code Splitting
+## 🧪 Testing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Back-end
+```bash
+# Run all tests
+mvn test
 
-### Analyzing the Bundle Size
+# Generate coverage report
+mvn jacoco:report
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Front-end
+```bash
+# Run all tests
+npm test
 
-### Making a Progressive Web App
+# Run with coverage
+npm test -- --coverage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+# Run specific test file
+npm test -- LoginComponent.test.js
+```
+  
+## 📊 Swagger API Tests
 
-### Advanced Configuration
+Swagger UI available at:
+```
+http://localhost:8080/swagger-ui.html
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 🛠 Application Screenshots
 
-### Deployment
+### Login Page 
+![login](https://github.com/user-attachments/assets/953356be-0021-42a1-b525-0a9098eceded)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Logout Page 
+![logout](https://github.com/user-attachments/assets/ae51b60b-21b2-47c2-a19b-cb995e45b874)
 
-### `npm run build` fails to minify
+### Register Page 
+![register](https://github.com/user-attachments/assets/8afd65a6-3db1-43db-850b-fbe3d49c6118)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Employee List Page 
+![employee list](https://github.com/user-attachments/assets/09d52193-7fbb-455a-a6c9-f4114d99f854)
+
+### Project List Page 
+![project list](https://github.com/user-attachments/assets/1750b88d-7c16-4bf2-a296-788b42d50acc)
+
+### Dashboard Page 
+![dashboard](https://github.com/user-attachments/assets/ccd6ea91-701f-46c8-ab91-34f253b104aa)
+
+### Update Employee Page 
+![update employee](https://github.com/user-attachments/assets/00a83f51-828e-40f2-80c9-9e0b7437095b)
+
+### Create Project Page 
+![create project](https://github.com/user-attachments/assets/5122b5b1-9748-4d30-bb7f-7b0cd4cff0da)
+
+### Search Function Page 
+![search function](https://github.com/user-attachments/assets/c7c23662-7fc3-4eee-a600-df2880793d0d)
+
+### Bulk Delete Page 
+![bulk delete](https://github.com/user-attachments/assets/909b8bb7-ca4a-47fe-a5cd-d9e30b52efd0)
