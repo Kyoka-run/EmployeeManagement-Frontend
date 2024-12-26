@@ -2,7 +2,7 @@ import AuthenticationService from "../service/AuthenticationService";
 import { useNavigate } from 'react-router-dom';
 import { MContext } from './MyProvider.jsx';
 import React, { useState, useContext } from "react";
-import { Container, Box, Typography, TextField, Button, Alert } from '@mui/material';
+import { Container, Box, Typography, TextField, Button, Alert, Stack } from '@mui/material';
 
 function LoginComponent() {
     const navigate = useNavigate();
